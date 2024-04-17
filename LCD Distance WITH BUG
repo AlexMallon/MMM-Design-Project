@@ -1,0 +1,37 @@
+#include <LiquidCrystal.h>
+
+// Ultrasonic sensor pins
+const int trigPin = 6;
+const int echoPin = 7;
+
+// LCD pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);  // RS, E, D4, D5, D6, D7
+
+void setup() {
+  // Set up the LCD's number of columns and rows:
+  lcd.begin(16, 2);
+  
+  // Set up the ultrasonic sensor pins
+  pinMode(trigPin, OUTPUT);
+  pinMode(echoPin, INPUT);
+}
+
+void loop() {
+  // Measure distance
+  long duration, distance;
+  digitalWrite(trigPin, LOW);  
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10); 
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration * 0.0343) / 2 * 10; // Convert the time into distance in mm
+
+  // Print distance on the LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Distance: ");  //This is where the bug is found (in these lines)
+  lcd.print(distance);
+  lcd.print(" mm");
+
+  delay(1000); // Delay for visibility
+}
