@@ -1,0 +1,25 @@
+#include <Servo.h>   //This includes the built in servo.h library which is already in the arduino ide
+
+#define SERVO_PIN 2     //This defines the port that the servo pin is connected to as a variable for conciseness 
+#define DELAY_TIME 10   //This is not necessarily needed, however setting the Delay time as a set variable helps to simplify the code and simplify any needed changes
+
+Servo myServo;
+int angle = 90; //The servo motor will begin at 90 degrees before rotating
+
+void setup() {
+  myServo.attach(SERVO_PIN); // This determines which digital pin the arduino will be sending and recieving information to the servo motor using definition set previously
+}
+
+void loop() {  //The loop begins which will continue running indefinitely
+  
+  for (angle = 0; angle <= 180; angle++) { //using a for statement to program anticlockwise movement of servo
+    myServo.write(angle); 
+    delay(DELAY_TIME);                     //Setting a delay time which was previously defined, the delay time (in ms) between the each incremental movement
+  }
+  
+  // Rotate the servo from 180 to 0 degrees
+  for (angle = 180; angle >= 0; angle--) { //the same but for clockwise movement
+    myServo.write(angle); 
+    delay(DELAY_TIME);    
+  }
+}
