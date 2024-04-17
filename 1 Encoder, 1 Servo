@@ -1,0 +1,59 @@
+#include <Servo.h> //include built in the servo library
+
+#define ENCODER_DT 2  // Connect DT pin of the encoder to digital pin 2 (DT OR CLK can be connected to either 2 or 3 as they are interrupt pins)
+#define ENCODER_CLK 3 // Connect CLK pin of the encoder to digital pin 3
+#define SERVO_PIN 9   // Connect servo control wire to digital pin 9
+
+Servo myServo;
+
+volatile int encoderPos = 90;  // Initial position of the servo (start at 90 degrees)
+volatile int lastEncoded = 0;  // Stores the last encoder state
+volatile long lastMillis = 0;  // Stores the last time the encoder state changed
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(ENCODER_DT, INPUT_PULLUP);  
+  pinMode(ENCODER_CLK, INPUT_PULLUP); 
+
+  // Attach interrupts to the encoder pins
+  attachInterrupt(digitalPinToInterrupt(ENCODER_DT), updateEncoder, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENCODER_CLK), updateEncoder, CHANGE);
+
+  myServo.attach(SERVO_PIN); // Attach the servo to the designated pin
+  myServo.write(encoderPos); // Set the initial position of the servo
+}
+
+void loop() {
+  // This loop is just for printing the encoder position to the serial monitor
+  if (millis() - lastMillis > 1000) { // Print encoder position every 1 second
+    Serial.print("Encoder Position: ");
+    Serial.println(encoderPos);
+    lastMillis = millis();
+  }
+}
+
+void updateEncoder() {
+  // This function updates the encoder position based on changes in the encoder state
+
+  int MSB = digitalRead(ENCODER_CLK); // Read the current state of CLK pin
+  int LSB = digitalRead(ENCODER_DT);  // Read the current state of DT pin
+
+  int encoded = (MSB << 1) | LSB; // Convert the current pin states to a single integer
+
+  int sum = (lastEncoded << 2) | encoded; // Combine the current and previous pin states
+
+  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) { // Check for valid encoder states
+    encoderPos++;
+    if (encoderPos > 180) {
+      encoderPos = 180; // Ensure position doesn't exceed servo limits
+    }
+  } else if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) {
+    encoderPos--;
+    if (encoderPos < 0) {
+      encoderPos = 0; // Ensure position doesn't exceed servo limits
+    }
+  }
+
+  myServo.write(encoderPos); // Set the servo position
+  lastEncoded = encoded;     // Update the last encoder state for the next iteration
+}
