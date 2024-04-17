@@ -1,0 +1,44 @@
+#define ENCODER_PIN_A 2 // Connect the DT pin or CLK pin from the rotary encoder to port 2
+#define ENCODER_PIN_B 3 // Connect the DT pin or CLK pin from the rotary encoder to port 3
+
+volatile int encoderPos = 0; // Variable to store the encoder position
+volatile int lastEncoded = 0; // Stores the last encoder state
+volatile long lastMillis = 0; // Stores the last time the encoder state changed
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(ENCODER_PIN_A, INPUT_PULLUP); // both of these commands on line 9 and 11 remove the need to use external resistors and allows us to use the ones built in to the rotary encoder
+  pinMode(ENCODER_PIN_B, INPUT_PULLUP);  // it sets pin A and B as input pins and helps to ensure that the pins have a defined voltage level throughout the different positions that the encoder will be at
+  
+  
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_A), updateEncoder, CHANGE); //'attatching interrupts' assigns a specific function to execute when the encoders position is changed, here the interrupt function is updateEncoder
+  attachInterrupt(digitalPinToInterrupt(ENCODER_PIN_B), updateEncoder, CHANGE);
+}
+
+void loop() {
+  // This loop is just for printing the encoder position to the serial monitor in the arduino IDE
+  if (millis() - lastMillis > 1000) { // Print encoder position every 1 second as the IDE uses milliseconds, this can be changed if higher or lower precision is desired
+    Serial.print("Encoder Position: ");
+    Serial.println(encoderPos);
+    lastMillis = millis();
+  }
+}
+
+void updateEncoder() {
+  // This function updates the encoder position based on changes in the encoder state
+  
+  int MSB = digitalRead(ENCODER_PIN_A); // Read the current state of pin A
+  int LSB = digitalRead(ENCODER_PIN_B); // Read the current state of pin B
+
+  int encoded = (MSB << 1) | LSB; // Convert the current pin states to a single integer
+
+  int sum = (lastEncoded << 2) | encoded; // Combine the current and previous pin states
+
+  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) { // Check for valid encoder states
+    encoderPos++;
+  } else if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) {
+    encoderPos--;
+  }
+
+  lastEncoded = encoded; // Update the last encoder state for the next iteration
+}
