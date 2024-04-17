@@ -1,0 +1,29 @@
+void loop() {
+  // Measure distance
+  long duration, distance;
+  digitalWrite(trigPin, LOW);  
+  delayMicroseconds(2); 
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10); 
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH);
+  distance = (duration * 0.0343) / 2; // Convert the time into distance in mm
+
+  // Print distance on the LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Distance: ");
+  
+  // Format distance to always display 3 digits
+  if (distance < 100) {   //In these lines the Bug is fixed
+    lcd.print(" ");
+  }
+  if (distance < 10) {
+    lcd.print(" ");
+  }
+  
+  lcd.print(distance);
+  lcd.print(" mm");
+
+  delay(1000); // Delay for visibility
+}
+
